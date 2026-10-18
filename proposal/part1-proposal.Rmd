@@ -1,0 +1,46 @@
+---
+title: "Project Part 1"
+author: "Satyam Bhanot"
+date: "14th November,2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+nba <- read.csv("../data/NBA_Statistics.csv")
+```
+
+This dataset contains performance statistics from the NBA 2018-2019 season. It includes data from all 30 NBA teams. The primary focus of the dataset is on three key metrics: Win Percentage (WINP), Three Point Goal Percentage (TPGP), and Field Goal Percentage (FGP). These statistics offer insights into the effectiveness of teams in scoring and their overall performance in terms of winning games.
+
+Here's the URL where I found my dataset:
+ehttps://stats.nba.com/.
+
+My response variable is Win Percentage(Y).
+
+My two explanatory variables are Three Point Goal Percentage and Field Goal Percentage are the predictor variables (X1 and X2, respectively).
+
+```{r}
+nba2.lm <- lm(WINP ~ TPGP, data = nba)
+summary(nba2.lm)
+
+# R^2 = 0.3592, Adj_r^2 = 0.3363
+
+nba3.lm <- lm(WINP ~ FGP, data = nba)
+summary(nba3.lm)
+
+#R^2 = 0.3965, Adj_r^2 = 0.375
+```
+
+For $Y\sim X1$, $r^2=0.3592$ and $R^2_{adj}=0.3363$
+For $Y\sim X2$ $r^2=0.3965$ and $R^2_{adj}=0.375$
+
+```{r}
+nba1.lm <- lm(WINP ~ TPGP + FGP, data = nba)
+summary(nba1.lm)
+
+# Adj_r^2 = 0.5909
+```
+For $Y\sim X1 + X2$ $R^2_{adj}=0.5909$

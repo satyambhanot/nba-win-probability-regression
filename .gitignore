@@ -1,0 +1,17 @@
+# R session state
+.Rproj.user/
+.Rhistory
+.RData
+.Rapp.history
+*.Rproj
+
+# knitr / LaTeX intermediates
+*_files/
+*_cache/
+*.aux
+*.log
+*.tex
+*.knit.md
+
+# macOS
+.DS_Store

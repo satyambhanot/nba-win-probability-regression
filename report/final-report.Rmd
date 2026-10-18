@@ -1,0 +1,253 @@
+---
+title: "Analyzing NBA Team Performance Metrics to Predict Winning Success"
+author: "Satyam Bhanot"
+date: "December 1,2023"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question
+
+We will investigate NBA 2018–19 performance data in this study. This project's main goal is to investigate how two distinct factors affect the likelihood of winning. 
+
+The response variable in the context of modeling NBA 2018–19 performance data is the win probability (WINP). This statistic is essential for evaluating performance because it shows a team's entire season's success.
+
+I suggest using both field goal percentage (FGP) and three-point goal percentage (TPGP) for the explanatory variables. These two metrics are excellent measures of a team's efficacy and efficiency in scoring, which are closely related to the team's capacity to win games. The percentage of three-point goals (TPGP): This is an important statistic because three-pointers account for a large portion of the team's overall score. Teams with higher TPGP typically have more effective offensive strategies, which results in more victories. Being able to score from beyond the arc is a big benefit in the modern NBA. Field Goal Percentage (FGP): This measure takes into account a team's overall shooting effectiveness. A team that has a higher FGP is making a higher percentage of their shot attempts, which directly helps them score more points and win games. Effective shooting teams typically dictate the pace of the game and apply constant offensive pressure to their opponents. These factors were selected because they have a direct bearing on a team's capacity for scoring, which is essential to winning basketball games. Similar to baseball, where run totals can forecast points scored, in basketball, a team's ability to win games (WINP) should be well predicted by its scoring efficiency, as measured by TPGP and FGP.
+
+## Data Set
+
+```{r}
+data <- read.csv("../data/NBA_Statistics.csv")
+data_Nba <- data.frame(data)
+knitr::kable(data_Nba, "pipe",
+             col.name = c("Team", "Win Probabilty", 
+                          "Three Point Goal Percentage", 
+                          "Field Goal Percentage"),
+             align = c("l", "c", "c", "c"))
+
+```
+
+Citation:
+*Official NBA Stats | Stats | NBA.com. (n.d.).* https://stats.nba.com/
+
+
+The variables in dataset, along with their units of measurement:
+
+Win Probability (WINP): This variable represents the ratio of games won to the total number of games played by an NBA team during the 2018–2019 season. It is calculated as the number of games won divided by the total number of games played. The value is presented as a probability, ranging from 0 (no wins) to 1 (all games won).
+
+Three Point Goal Percentage (TPGP): This metric indicates the efficiency of a team in making three-point field goals. It is calculated by dividing the number of successful three-point field goals by the total number of three-point field goal attempts. The value is expressed as a percentage, reflecting the accuracy of a team's three-point shooting.
+
+Field Goal Percentage (FGP): This variable measures the overall shooting efficiency of a team. It is calculated by dividing the number of successful field goals (both two-point and three-point shots) by the total number of field goal attempts. Like TPGP, it is expressed as a percentage, demonstrating the team's overall shooting accuracy.
+
+Each of these variables is critical in assessing a team's performance in the NBA, with WINP directly reflecting their success in games, while TPGP and FGP provide insights into their scoring efficiency.
+
+
+
+```{r}
+
+# Scatterplot for WINP vs TPGP
+plot(data_Nba$TPGP, data_Nba$WINP, xlab = "Three Point Goal Percentage (TPGP)", 
+     ylab = "Win Probabilty (WINP)",
+     main = "Win Probabilty vs Three Point Goal Percentage", col="blue")
+
+# Scatterplot for WINP vs FGP
+plot(data_Nba$FGP, data_Nba$WINP, xlab = "Field Goal Percentage (FGP)", 
+     ylab = "Win Probabilty (WINP)",
+     main = "Win Probabilty vs Field Goal Percentage", col="red")
+```
+
+```{r}
+
+# Fit Linear Model for WINP ~ TPGP
+nba_model_tgp.lm <- lm(WINP ~ TPGP, data = data_Nba)
+Model_summary1<-summary(nba_model_tgp.lm)
+r_squared1<-Model_summary1$r.squared
+r_squared1
+```
+The 35.92% variablility in Win Probabilty is explained by Three Point Goal Percentage.
+
+```{r}
+# Fit Linear Model for WINP ~ FGP
+nba_model_fgp.lm <- lm(WINP ~ FGP, data = data_Nba)
+Model_summary2<-summary(nba_model_fgp.lm)
+r_squared2<-Model_summary2$r.squared
+r_squared2
+```
+
+The 39.65% variablility in Win Probabilty is explained by Field Goal Percentage.
+
+## Preliminary Model
+
+Model for $Y=X1$:
+```{r}
+nba_model_tgp.lm <- lm(WINP ~ TPGP, data = data_Nba)
+summary(nba_model_tgp.lm)
+```
+$$\hat{y} = -2.26546 + 0.07765x_1$$
+Model for $Y=X2$:
+```{r}
+nba_model_fgp.lm <- lm(WINP ~ FGP, data = data_Nba)
+summary(nba_model_fgp.lm)
+```
+$$\hat{y} = -1.62629 + 0.05148x_2$$
+Model for $Y=X1+X2$:
+```{r}
+nba_model_added.lm <- lm(WINP ~ TPGP+FGP, data = data_Nba)
+summary(nba_model_added.lm)
+
+```
+$$\hat{y} = -3.497496 + 0.062675x_1 + 0.042741x_2$$
+
+
+
+Y~$X_1$: $R^2_{adj}=0.3363$
+Y~$X_2$: $R^2_{adj}=0.375$
+Y~$X_1+X_2$: $R^2_{adj}=0.5909$
+
+For Y~ $X_1$, the $R^2_{adj}$ was 0.3363, while for Y^ $X_2$, it was 0.375. Nevertheless, the inclusion of both predictors in the model Y~$X_1 + X_2$ raises $R^2_{adj}$ and makes it equal to 0.5909.
+
+Full second-order model: 
+```{r}
+nba_model.full<-lm(WINP ~ TPGP + FGP + I(TPGP^2) + I(FGP^2) + TPGP*FGP, data = data_Nba)
+nba_model.full
+```
+$$\hat{y} = -9.180432+0.361958x_1+0.062682x_2+0.002373x_1^2+0.004601x_2^2-0.011333x_1x_2$$
+
+Testing that at least one of the model terms is significant:
+```{r}
+anova(nba_model.full)
+```
+
+
+```{r}
+p_value<-pf(8.365397,5,24,lower.tail=FALSE)
+p_value
+```
+
+Anova Test:
+1. LEVEL OF SIGNIFICANCE: alpha=0.05
+
+2. HYPOTHESES: H0 :beta1=beta2=beta3=beta4=beta5=0
+vs
+Ha : at least one of the betai’s are non-zero(i=1,2,3,4,5)
+
+3. DECISION RULE: Reject H0 if p value is less than equal to alpha
+
+4. TEST STATISTIC: F= 8.365397
+
+5. P-VALUE: 0.0001081793
+
+6. CONCLUSION: Since p value is less than alpha we reject null hypothesis. To conclude, there is sufficient evidence that at least one of TPGP, FGP, TPGP^2, FGP^2 and TPGP*FGP are significant to the model.
+
+## Model Refinement
+
+Checking for the significant terms in the model:
+```{r}
+summary(nba_model.full)
+```
+
+As no model terms are significant at this stage. I will check for multicollinearity by running the VIF function on your full model.
+
+```{r}
+library(car)
+vif(nba_model.full)
+```
+I will remove TPGP * FGP from my model as it is having the largest VIF value.
+
+```{r}
+nba_model_reduced_1<-lm(WINP ~ TPGP + FGP + I(TPGP^2) + I(FGP^2), data = data_Nba)
+summary(nba_model_reduced_1)
+```
+As no model terms are significant. Again I will check for multicollinearity by running the VIF function on your full model.
+
+```{r}
+vif(nba_model_reduced_1)
+```
+I will remove FGP^2 from my model as it is having the largest VIF value.
+
+```{r}
+nba_model_reduced_2<-lm(WINP ~ TPGP + FGP + I(TPGP^2), data = data_Nba)
+summary(nba_model_reduced_2)
+```
+As all model terms does not appear to be significant. I will remove the last higher order term from the model which is TPGP^2.
+
+```{r}
+model_reduced_final<-lm(WINP ~ TPGP + FGP  , data = data_Nba)
+summary(model_reduced_final)
+```
+The coefficients that are significant to the model are TPGP and FGP with p-values 0.000476 and 0.000203 respectively.
+
+```{r}
+model.reduced<-lm(WINP ~ TPGP + FGP , data = data_Nba)
+model.reduced
+```
+
+```{r}
+anova(model.reduced,nba_model.full)
+```
+
+1. LEVEL OF SIGNIFICANCE: alpha=0.05
+
+2. HYPOTHESES: H0 :beta3=beta4=beta5=0
+vs
+Ha : at least one of the betai’s are non-zero(i=3,4,5)
+
+3. DECISION RULE: Reject H0 if p value is less than equal to alpha
+
+4. TEST STATISTIC: F = 0.357
+
+5. P-VALUE: 0.7845
+
+6. CONCLUSION: Since p value=0.7845, greater than alpha=0.05, we fail to reject null hypothesis. To conclude, there is insufficient evidence that $TPGP^2$,$FGP^2$ and $TPGP*FGP$ are non zero and explain the response variable Win Probabilty (WINP) in the model.
+
+## Final Model and Assessment
+
+```{r}
+anova(model.reduced)
+```
+
+1. LEVEL OF SIGNIFICANCE: alpha=0.05
+
+2. HYPOTHESES: H0 :beta1=beta2=0
+vs
+Ha : at least one of the beta i’s are non-zero(i=1,2)
+
+3. DECISION RULE: Reject H0 if p value is less than equal to alpha
+
+4. TEST STATISTIC: F=2889.432
+
+5. P-VALUE: less than 0.00001
+
+6. CONCLUSION: Since p value is less than alpha=0.05, we reject null hypothesis. To conclude, there is sufficient evidence that TPGP and FGP are non zero and sufficiently explain the variation in response variable is the Win Probabilty (WINP).
+
+```{r}
+nba.residual = resid(model.reduced)
+probability.residual = fitted.values(model.reduced)
+plot(probability.residual, nba.residual, xlab="yhat(predicted value of Win probability)",
+     ylab="Residuals",main="Residual plot",col="blue")
+abline(h=0,col="red")
+quality.stdres<-rstandard(model.reduced)
+qqnorm(quality.stdres,ylab="Residuals",xlab="Normal Win Probability",
+      main="Normal quantile plot",col="blue")
+qqline(quality.stdres)
+```
+
+**Assumptions of the model**
+
+Residual plot: When seen across observations, residuals do not clearly display any patterns. Additionally, the points are dispersed around. We can then conclude that the linearity assumption is satisfied.
+
+Normal quantile plot: Residuals appear to be aligned with the line, with the exception of a few possible outlier points on the left and right tail.
+
+## Conclusion
+
+As a result of our thorough examination of the NBA 2018–19 performance data, we have concluded that the clubs' win probabilities (WINP) can be accurately predicted by the explanatory variables we have chosen: field goal percentage (FGP) and three-point goal % (TPGP). The strong statistical correlation found between these factors and WINP emphasizes how important shooting efficiency is to a team's performance. Strong FGP and TPGP were correlated with higher win probability, supporting our theory that a team's ability to score well overall and from three-point range is a major factor in determining how likely they are to win. This conclusion highlights the significance of sound shooting techniques in basketball and provides insightful advice for teams looking to boost their performance in these areas in order to increase their winning percentages.
+ 
+
+```{r}
+summary(model.reduced)
+```
+
+$$\hat{y} = -3.497496+0.062675x_1+0.042741x_2$$
